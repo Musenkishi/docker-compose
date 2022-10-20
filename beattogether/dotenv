@@ -1,0 +1,3 @@
+MASTER_CONFIG_FILE=/home/server/beatsaber/config/master.json
+DEDICATED_CONFIG_FILE=/home/server/beatsaber/config/dedicated.json
+STATUS_CONFIG_FILE=/home/server/beatsaber/config/api.json

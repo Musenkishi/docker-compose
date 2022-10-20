@@ -1,0 +1,17 @@
+{
+  "Node": {
+    "HostName": "PUBLIC-IP-HERE",
+    "BasePort": 30000,
+    "RelayServers": {
+      "MaximumSlots": 10000
+    }
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning"
+      }
+    }
+  }
+}

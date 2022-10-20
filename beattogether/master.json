@@ -1,0 +1,13 @@
+{
+  "MasterServer": {
+    "AllowNoodle": true
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning"
+      }
+    }
+  }
+}
