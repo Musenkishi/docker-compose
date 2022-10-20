@@ -1,0 +1,67 @@
+version: '3.9'
+services:
+    bs-rabbitmq:
+        container_name: bsrabbitmq
+        image: 'rabbitmq:3.9-management'
+        ports:
+            - '2328:2328'			            # master server
+            - '30000-30500:30000-30500'		# dedicated server
+            - '23280:80'			            # status api
+        networks:
+            bt:
+                ipv4_address: 172.16.238.10
+        healthcheck:
+          test: rabbitmq-diagnostics check_port_connectivity
+          interval: 1s
+          timeout: 3s
+          retries: 30
+        logging:
+            options:
+                max-size: 4m
+                
+    bs-status-api:
+        container_name: bsstatus
+        image: ghcr.io/beattogether/beat-together-status-api:sha-64c04e8
+        depends_on:
+          bs-rabbitmq:
+            condition: service_healthy
+        network_mode: "service:bs-rabbitmq"
+        volumes:
+          - '${STATUS_CONFIG_FILE}:/app/appsettings.Production.json'
+        logging:
+            options:
+                max-size: 4m
+    
+    bs-master-server:
+        container_name: bsmaster
+        image: ghcr.io/beattogether/beat-together-master-server:sha-08b5e92
+        depends_on:
+          bs-rabbitmq:
+              condition: service_healthy
+        network_mode: "service:bs-rabbitmq"
+        volumes:
+          - '${MASTER_CONFIG_FILE}:/app/appsettings.Production.json'
+        logging:
+            options:
+                max-size: 4m
+
+    bs-dedicated-server:
+        container_name: bsdedicated
+        image: ghcr.io/beattogether/beat-together-dedicated-server:sha-f746e7f
+        depends_on:
+          bs-rabbitmq:
+              condition: service_healthy
+        network_mode: "service:bs-rabbitmq"
+        volumes:
+          - '${DEDICATED_CONFIG_FILE}:/app/appsettings.Production.json'
+        logging:
+            options:
+                max-size: 4m
+
+networks:
+    bt:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.16.238.0/24"
+                  gateway: "172.16.238.1"
