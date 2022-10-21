@@ -3,18 +3,13 @@ services:
     bs-rabbitmq:
         container_name: bsrabbitmq
         image: 'rabbitmq:3.9-management'
-        ports:
-            - '2328:2328'			            # master server
-            - '30000-30500:30000-30500'		# dedicated server
-            - '23280:80'			            # status api
-        networks:
-            bt:
-                ipv4_address: 172.16.238.10
+        network_mode: "host"
         healthcheck:
           test: rabbitmq-diagnostics check_port_connectivity
           interval: 1s
           timeout: 3s
           retries: 30
+        restart: unless-stopped
         logging:
             options:
                 max-size: 4m
@@ -25,9 +20,12 @@ services:
         depends_on:
           bs-rabbitmq:
             condition: service_healthy
-        network_mode: "service:bs-rabbitmq"
+        ports:
+           - '23280:23280'
+        network_mode: "host"
         volumes:
           - '${STATUS_CONFIG_FILE}:/app/appsettings.Production.json'
+        restart: unless-stopped
         logging:
             options:
                 max-size: 4m
@@ -38,30 +36,28 @@ services:
         depends_on:
           bs-rabbitmq:
               condition: service_healthy
-        network_mode: "service:bs-rabbitmq"
+        ports:
+           - '2328:2328'
+        network_mode: "host"
         volumes:
           - '${MASTER_CONFIG_FILE}:/app/appsettings.Production.json'
+        restart: unless-stopped
         logging:
             options:
                 max-size: 4m
-
+    
     bs-dedicated-server:
         container_name: bsdedicated
         image: ghcr.io/beattogether/beat-together-dedicated-server:master
         depends_on:
           bs-rabbitmq:
               condition: service_healthy
-        network_mode: "service:bs-rabbitmq"
+        ports:
+            - '30000-30500:30000-30500'
+        network_mode: "host"
         volumes:
           - '${DEDICATED_CONFIG_FILE}:/app/appsettings.Production.json'
+        restart: unless-stopped
         logging:
             options:
                 max-size: 4m
-
-networks:
-    bt:
-        ipam:
-            driver: default
-            config:
-                - subnet: "172.16.238.0/24"
-                  gateway: "172.16.238.1"
