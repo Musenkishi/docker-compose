@@ -21,7 +21,7 @@ services:
                 
     bs-status-api:
         container_name: bsstatus
-        image: ghcr.io/beattogether/beat-together-status-api:master
+        image: ghcr.io/beattogether/beat-together-status-api:sha-64c04e8
         depends_on:
           bs-rabbitmq:
             condition: service_healthy
