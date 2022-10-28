@@ -1,63 +1,63 @@
 version: '3.9'
 services:
-    bs-rabbitmq:
-        container_name: bsrabbitmq
+    
+    bt_rabbitmq:
+        container_name: bt_rabbitmq
         image: 'rabbitmq:3.9-management'
-        network_mode: "host"
+        networks:
+          bt_network:
+            ipv4_address: 172.16.239.10
+        ports:
+          - '30000-30500:30000-30500'      # dedicated server
+          - '30000-30500:30000-30500/udp'  # dedicated server
+          - '2328:2328'                    # master server
+          - '2328:2328/udp'                # master server
+          - '23280:23280'                  # status api
         healthcheck:
           test: rabbitmq-diagnostics check_port_connectivity
           interval: 1s
           timeout: 3s
           retries: 30
         restart: unless-stopped
-        logging:
-            options:
-                max-size: 4m
                 
-    bs-status-api:
-        container_name: bsstatus
-        image: ghcr.io/beattogether/beat-together-status-api:sha-64c04e8
+    bt_status_api:
+        container_name: bt_status
+        image: ghcr.io/beattogether/beat-together-status-api:NewServerApi
         depends_on:
-          bs-rabbitmq:
+          bt_rabbitmq:
             condition: service_healthy
-        ports:
-           - '23280:23280'
-        network_mode: "host"
+        network_mode: service:bt_rabbitmq
         volumes:
           - '${STATUS_CONFIG_FILE}:/app/appsettings.Production.json'
         restart: unless-stopped
-        logging:
-            options:
-                max-size: 4m
     
-    bs-master-server:
-        container_name: bsmaster
+    bt_master:
+        container_name: bt_master
         image: ghcr.io/beattogether/beat-together-master-server:master
         depends_on:
-          bs-rabbitmq:
+          bt_rabbitmq:
               condition: service_healthy
-        ports:
-           - '2328:2328'
-        network_mode: "host"
+        network_mode: service:bt_rabbitmq
         volumes:
           - '${MASTER_CONFIG_FILE}:/app/appsettings.Production.json'
         restart: unless-stopped
-        logging:
-            options:
-                max-size: 4m
     
-    bs-dedicated-server:
-        container_name: bsdedicated
+    bt_dedicated:
+        container_name: bt_dedicated
         image: ghcr.io/beattogether/beat-together-dedicated-server:master
         depends_on:
-          bs-rabbitmq:
+          bt_rabbitmq:
               condition: service_healthy
-        ports:
-            - '30000-30500:30000-30500'
-        network_mode: "host"
+        network_mode: service:bt_rabbitmq
         volumes:
           - '${DEDICATED_CONFIG_FILE}:/app/appsettings.Production.json'
         restart: unless-stopped
-        logging:
-            options:
-                max-size: 4m
+
+networks:
+  bt_network:
+    name: bt_network
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.239.0/24"
+          gateway: "172.16.239.1"
