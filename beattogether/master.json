@@ -1,6 +1,12 @@
 {
   "MasterServer": {
+    "EndPoint": "172.16.239.10:2328",
     "AllowNoodle": true
+  },
+  "Messaging": {
+    "RabbitMQ": {
+      "EndPoint": "amqp://172.16.239.10:5672"
+    }
   },
   "Serilog": {
     "MinimumLevel": {
